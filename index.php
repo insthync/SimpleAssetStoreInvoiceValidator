@@ -6,6 +6,7 @@ $file = 'yourFilePath';
 
 if (!empty($_GET['invoice']))
 {
+    set_time_limit(0);
     $curl = curl_init();
     curl_setopt_array($curl, array(
         CURLOPT_RETURNTRANSFER => 1,
