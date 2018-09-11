@@ -2,30 +2,37 @@
 $apiUrl = "https://api.assetstore.unity3d.com/publisher/v1/invoice/verify.json";
 $apiKey = "yourApiKey";
 $package = "yourPackage";
-$file = 'yourFilePath';
+$files = array('ver' => 'yourFilePath');
 
-if (!empty($_GET['invoice']))
+if (!empty($_GET['invoice']) && !empty($_GET['version']))
 {
+    $invoice = $_GET['invoice'];
+    $version = $_GET['version'];
     set_time_limit(0);
     $curl = curl_init();
     curl_setopt_array($curl, array(
         CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_URL => $apiUrl."?key=".$apiKey."&invoice=".$_GET['invoice'],
+        CURLOPT_URL => $apiUrl."?key=".$apiKey."&invoice=".$invoice,
     ));
     $resp = curl_exec($curl);
     curl_close($curl);
     $result = json_decode($resp, true);
     $found = false;
-    foreach ($result['invoices'] as $invoice)
+    if (!empty($result['invoices']))
     {
-        if ($invoice['package'] === $package)
+        $invoices = $result['invoices'];
+        foreach ($invoices as $invoice)
         {
-            $found = true;
-            break;
+            if ($invoice['package'] === $package)
+            {
+                $found = true;
+                break;
+            }
         }
     }
-    if ($found)
+    if ($found && !empty($files[$version]))
     {
+        $file = $files[$version];
         header('Content-Type: application/octet-stream');
         header('Content-Disposition: attachment; filename="'.basename($file).'"');
         header('Expires: 0');
@@ -48,6 +55,16 @@ else
     <body>
     <form method="GET" action="index.php">
     Invoice: <input type="text" name="invoice" />
+    Version:
+    <select name="version">
+    <?php
+    foreach ($files as $version => $filePath) {
+        ?>
+        <option value="<?php echo $version; ?>"><?php echo $version; ?></option>
+        <?php
+    }
+    ?>
+    </select>
     <input type="submit" text="Download" />
     </form>
     </body>
